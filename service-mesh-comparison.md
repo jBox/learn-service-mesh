@@ -1,10 +1,10 @@
-# （翻译）服务网格比较
+# （翻译）服务网格的对比
 
 原文：[Service Mesh Comparison](https://servicemesh.es/)
 
 ## 什么是服务网格？
 
-服务网格是一个专用的基础设施层，它为服务之间的网络添加功能。 它允许控制流量并获得整个系统的洞察力。 可观察性、流量转移（如金丝雀发布）、弹性功能（例如断路器，请求重试和超时设置）和自动双向 TLS (mutual TLS) 可以配置一次并以分散的方式强制执行。 与类似功能的类库 (libraries) 相比，服务网格不需要更改代码。 相反，它添加了一层额外的容器，这些容器可靠地实现了这些功能，并且与技术或编程语言无关。
+服务网格是一个专用的基础设施层，它为服务之间的网络添加功能。 它允许控制流量并获得对整个系统的洞察能力。 可观察性、流量转移（如金丝雀发布）、弹性功能（例如断路器，请求重试和超时等设置）和自动双向 TLS (mutual TLS) 只需一次配置便以分散的方式强制执行。 与类似功能的类库 (libraries) 相比，服务网格不需要修改代码。 相反，它添加了一层额外的容器，这些容器可靠地实现了这些功能，并且与技术或编程语言无关。
 
 ## 服务网格框架
 
@@ -78,9 +78,90 @@ Cilium 早在 Service Mesh 一词出现之前就已经存在，它通过 eBPF �
 
 - 测试您的单个应用的延迟和资源开销。对于每个候选服务网格实现，设置相同的测试环境并安装服务网格。设置一个额外的无服务网格的环境作为对比环境。在所有环境中安装您的应用。使用 [Locust](https://locust.io/) 或 [Fortio](https://fortio.org/) 等工具执行负载测试并测量请求延迟、CPU 和内存消耗。
 
-## 服务网格对比
+## 对比不同的服务网格实现
 
 |   | Istio | Linkerd | AWS App Mesh | Consul | Traefik Mesh (formerly Maesh) | Kuma | Open Service Mesh (OSM) | Cilium |
 |----|----|----|----|----|----|----|----|----|
-| 当前版本 | 1.13 | 2.11 | | 1.13 | 1.4 | 1.7 | 1.0 | 1.12 |
-| 许可 | Apache License 2.0 | Apache License 2.0 | Closed Source | Mozilla License | Apache License 2.0 | Apache License 2.0 | Apache License 2.0 | Apache License 2.0 |
+| **当前版本** | 1.13 | 2.11 | | 1.13 | 1.4 | 1.7 | 1.0 | 1.12 |
+| **许可** | Apache License 2.0 | Apache License 2.0 | Closed Source | Mozilla License | Apache License 2.0 | Apache License 2.0 | Apache License 2.0 | Apache License 2.0 |
+| **发起者** | Google, IBM, Lyft | Buoyant | AWS | HashiCorp | Traefik Labs | Kong | Microsoft | Cilium |
+| **服务代理** | Envoy, proxyless for gRPC (experimental) | Linkerd2-proxy | Envoy | defaults to Envoy, exchangeable | Traefik Proxy on each node | Envoy | Envoy | Cilium agent on each node, Proxy Injection option for L7 (Envoy) |
+| **入口控制器** | Envoy / Own Concept, support for Kubernetes Gateway API | any |  | Envoy. Support for Kubernetes Gateway API with Consul API Gateway | any | any | prepared config for Contour, compatible with any other | Cilium Ingress for TLS & path-based routing features, compatible with any other |
+| **服务治理** | see Istio Community and Open Usage Commons | see Linkerd Governance and CNCF Charter | AWS | see Contributing to Consul | see Contributing notice | see Contributing notice, Governance, and CNCF Charter | see Contributing notice and CNCF Charter | see Governance |
+| **入门教程** | Istio Tasks | Linkerd Getting Started Guide | AWS App Mesh Getting Started | HashiCorp Learn platform | Traefik Mesh Example | Install Kuma on Kubernetes | Install OSM on Kubernetes | Cilium Quick Installation |
+| **是否用于生产** | yes | yes |  | yes |  |  |  | yes |
+| **优点**  | Istio can be adapted and extended like no other mesh. Its many features are available for Kubernetes and other platforms. | Linkerd is designed to be non-invasive and is optimized for performance and usability. Therefore, it requires little time to adopt. | AWS App Mesh is integrated into the AWS landscape and it is fully managed for you. | Consul service mesh can be used in any Consul environment and therefore does not require a scheduler. The proxy can be changed and extended. | Traefik Mesh focuses on a selection of features to achieve good usability and performance. | Kuma supports both Kubernetes and VMs - including hybrid multi-zone deployments - and scales to many autonomous zones with different network constraints, it also allows you to customize the Envoy Proxy. | OpenServiceMesh is driven by Microsoft and therefore expected to be well integrated with Azure. It also supports the SMI API. | Cilium takes a different approach on service mesh by making use of eBPF and therefore it doesn't need sidecars at all, which saves complexity and cost.|
+| **缺点** | Istio's flexibility can be overwhelming for teams who don't have the capacity for more complex technology. Also, Istio takes control of the ingress controller. | Linkerd is deeply integrated with Kubernetes and does not currently support non-Kubernetes workloads. It also does not currently support data plane extensions. | AWS App Mesh configuration cannot be migrated to an environment outside AWS. | Consul uses its own internal storage, and does not on rely Kubernetes for persistent storage. | Traefik Mesh currently does not support transparent TLS encryption. | Kuma is possibly the most flexible service mesh. Teams should thoroughly consider whether their project can handle the complexity involved. | OpenServiceMesh (OSM) is the latest service mesh Implementation and simply too young to be production-ready. | To enable the same feature set as Service Meshes with sidecars, a lot of maunal configuration is used. |
+| **支持的协议** ||
+| **TCP**  | yes | yes | yes | yes | yes | yes | yes | yes |
+| **HTTP/1.1+** | yes | yes | yes | yes | yes | yes | yes | yes |
+| **HTTP/2** | yes | yes | yes | yes | yes | yes | yes | yes |
+| **gRPC** | yes | yes | yes | yes | yes | yes | yes | yes |
+| **Sidecar / 数据平面** ||
+| **自动 Sidecar 注入** | yes | yes | yes | yes | yes (per Node) | yes | yes | yes (per Node) |
+| [**CNI**](https://www.cni.dev/) **插件** *避免 Pod 网络特权* | yes, in beta | yes | yes | yes | no | yes | no | not necessary |
+| **平台和可扩展性** ||
+| **平台** | Kubernetes | Kubernetes | ECS, Fargate, EKS, EC2 | Kubernetes, Nomad, VMs, ECS, Lambda | Kubernetes | Kubernetes, VMs, ECS | Kubernetes | Kubernetes |
+| **云集成** | Google Cloud, Alibaba Cloud, IBM Cloud | DigitalOcean | AWS | HCP Consul on AWS and Azure |  |  | Microsoft Azure |
+| **网格扩展** *通过集群外的容器或者虚拟机对网格进行扩展* | yes | no | yes, within AWS | yes | no | yes | no | yes |
+| **混合云网格** *Control and observe multiple clusters* | yes | yes |  | yes | no | yes | planned | yes |
+| **SMI 兼容性** ||
+| **访问流量控制** | yes (unofficial/3rd party support) | no | no | yes | yes | no | yes | no |
+| **流量规格** | yes (unofficial/3rd party support) | no | no | no | yes | no | yes | no |
+| **流量拆分** | yes (unofficial/3rd party support) | yes | no | no | yes | no | yes | no |
+| **流量指标** | yes (unofficial/3rd party support) | yes (unofficial/3rd party support) | no | no | no | no | yes | no |
+| **监控功能** ||
+| **收集服务日志** | no | no | no, use AWS FireLens for ECS and Fargate instead | no | no | no | yes, using Fluent Bit | no |
+| **生成访问日志** | yes | no (tap feature instead) | yes | yes | yes | yes | no | yes, via Proxy injection |
+| **生成 Golden Signal 指标数据** | yes | yes | yes | yes, depending on the proxy used | yes | yes | yes | yes, L7 metrics via Proxy injection |
+| **集成 Prometheus** | yes | yes, in an extension | no | yes, for non-prod environments | yes | yes | yes | yes |
+| **集成 Grafana** | yes | yes, in an extension | no | no | yes | yes, including a datasource | yes | yes |
+| **路由指标** *分别收集每个 HTTP 端点的指标数值* | experimental | yes |  | depending on the proxy used | no | no | no | yes, via Proxy injection
+| **仪表板** | yes, Kiali | yes | yes, AWS Cloud Watch | yes | no | yes, with a service topology map in grafana | no | yes, Hubble |
+| **链路跟踪兼容性** | Jaeger, Zipkin, Solarwinds | all Backends supporting OpenTelemetry | AWS X-Ray | Datadog, Jaeger, Zipkin, OpenTracing, Honeycomb | Jaeger | Jaeger, zipkin, datadog | Jaeger | OpenTelemetry via hubble-otel |
+| **集成链路跟踪** | yes, Jaeger or Zipkin for nonprod environments | Jaeger, in an extension | yes, AWS X-Ray | yes | yes, Jaeger | yes, Jaeger | yes (install with flag), Jaeger | no |
+| **路由** ||
+| **负载均衡** | yes (Round Robin, Random, Weighted, Least Request) | yes (EWMA, exponentially weighted moving average) | yes | yes (Round Robin, Random, Weighted, Least Request, Ring Hash, Maglev) | yes | yes (Round Robin, Least Request, Ring Hash, Random, Maglev) | yes | yes |
+| **基于百分比的流量拆分** | yes | yes, through SMI | yes | yes | yes, through SMI | yes | yes, through SMI | via manual configuration of Envoy proxy |
+| **基于 Header- 和 Path- 的流量拆分** *基于请求头和路径的路由规则* | yes | planned | yes | yes | no | yes | Header-based via SMI | via manual configuration of Envoy proxy |
+| **弹性** ||
+| **断路器** | yes | no, planned for 2.12.0 | yes | yes | yes | yes | yes | via manual configuration of Envoy proxy |
+| **重试和超时** | yes | yes | yes | yes | yes | yes, retry and timeout | no | via manual configuration of Envoy proxy |
+| **基于 Path- 和 Method- 的重试和超时** *每个端点的不同重试和超时配置* | yes | yes | yes | yes | no | only Method-based retry other can be done with Proxy templating | no | no |
+| **故障注入** | yes | yes, by adding a deployment and a traffic split config |  | no* | no | yes | no | no |
+| **延迟注入** | yes | no |  | no* | no | yes | no | no |
+| **安全** ||
+| **mTLS** | yes | yes, on by default | yes | yes | no | yes | yes | yes, with manually created certs |
+| **强制 mTLS** | yes | yes | yes, via client policies | yes | no | yes | yes, via https://linkerd.io/2.11/features/server-policy/ | yes |
+| **mTLS 许可模式** | yes | yes |  | no | no | yes | yes |
+| **缺省 mTLS** | yes, permissive mode | yes, permissive mode | no | yes | no | no | yes | no |
+| **可插拔的外部 CA 证书和密钥** *比如 Vault 证书管理* | yes, CA cert pluggable and CA integration (experimental) | yes | yes | yes, HashiCorp Vault, ACM Private CA, custom CA | no | yes | HashiCorp Vault, cert-manager and Azure Key Vault | yes |
+| **服务到服务授权规则** | yes | yes | no, but support for IAM for user-authorization | yes | no | yes | yes | yes |
+
+**或许可以通过代理的配置/模板来实现*
+
+## 这仅仅是一张表格
+
+如需有关 Kubernetes 和 Service Mesh 的建议、培训和支持，请发送电子邮件至 [info@innoq.com](info@innoq.com)
+
+## 服务网格的替代方案
+
+毫无疑问，服务网格是一种有用的模式，当前的一些服务网格实现也非常有前途。 但它们也伴随着技术储备和技术复杂性等挑战。 和其他工具一样，服务网格并非在所有场景下都行之有效的。有的时候，保留现有的众所周知的“无聊”技术或者采用普通的替代解决方案可能也是明智之举。
+
+### 类库（Libraries）
+
+类库是包含在微服务中的。缺点也很明显，类库严重依赖于特定技术和语言，类库的实现可能不一致的风险，类库作为服务基础设施与业务逻辑耦合在一起。
+
+但是，通过熟悉类库的使用，开发人员的生产力可以（至少在短期内）得到很好的提高。另外，有时需要业务范围的知识，例如需要根据业务指标为断路器配置特定的回退业务。在这些情况下，服务网格无法深入到业务级别的配置。
+
+服务网格需要对基础架构进行调整。因此，如果基础架构不能或者不应该被改变时，则无法使用服务网格。有时，即使服务网格只应用于某些特定的服务，改变基础设施的风险也会被认为太高。
+
+### 无（同步通信）微服务
+
+服务网格对于同步通信特别有用。他们通常依靠 HTTP 协议来传输附加信息，例如一个请求是否失败。
+
+采用微服务的原因之一是它们有可能缩短软件的上线时间。尽管存在一些缺点，例如高延迟和紧密耦合，但微服务的同步通信是一种常见的做法。
+
+然而，人们注意到有更多的方法可以实现微服务通信，甚至可以避免对服务网格的依赖（在免费的 [Microservices Recipes Book](https://leanpub.com/microservices-recipes) 中阅读更多内容）。SCS 和异步通信等模式旨在缓解经典（同步通信）微服务的许多问题。当然，您可以使用 HTTP 来实现异步微服务，例如通过轮询的方式获取消息事件。由于服务网格依赖于 HTTP，它们仍然会有一些用处。但是，对于异步通信的弹性功能就显得微不足道了，因为异步通信先天就支持弹性。
+
+举这个例子可能有点无理取闹，对于单体架构而言，服务网格通常甚至不被视为一种解决方案。显而易见，服务网格只能帮助单体应用与其他系统之间的通信，而对于应用内部的通信是毫无帮助的。
