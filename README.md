@@ -6,4 +6,4 @@
 
 ## 内容
 
-- [（翻译）服务网格的对比](./blob/main/service-mesh-comparison.md)
+- [（翻译）服务网格的对比](./service-mesh-comparison.md)
